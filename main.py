@@ -11,14 +11,16 @@ NOTAS:
 - En la matriz de los objetos inmóviles se define la esquina inferior izquierda,
 pero hay que especificar la posición desde la que se pintará la imagen (esquina
 superior izquierda) y los bloques a añadir a la lista de obstáculos.
+- Los NPCs irán en la lista level[1] como objetos.
 """
 
-import pygame, sys, random, copy
+import pygame, sys, random
 import pygame.event as GAME_EVENTS
 import pygame.locals as GAME_GLOBALS
 import pygame.time as GAME_TIME
 
 import player #Archivo player.py
+import stuff #Obstacles and NPCs
 
 """ VARIABLES """
 
@@ -52,9 +54,9 @@ matrix = [
   [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -73,22 +75,22 @@ matrix = [
 
 matrix2 = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 2, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 2, 1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -134,12 +136,6 @@ mapBlocks = [
     pygame.image.load("assets/blocks/dirt/dirtCornerDownLeft.png"), #13 Esquina de tierra abajo-izquierda
     pygame.image.load("assets/blocks/dirt/dirtCornerDownRight.png"), #14 Esquina de tierra abajo-derecha
     pygame.image.load("assets/blocks/flowers/white.png"), #15 Flores blancas (para poner en hierba)
-]
-
-layer2 = [
-    pygame.image.load("assets/layer2/tree.png"), #0 Árbol en hierba
-    pygame.image.load("assets/blocks/shrubbery/bash.png"), #1 Arbusto normal (para poner en hierba)
-    pygame.image.load("assets/blocks/shrubbery/red.png"), #2 Arbusto rojo (para poner en hierba)
 ]
 
 """ GENERAL FUNCTIONS """
@@ -214,16 +210,22 @@ def createLevel(): #Crea el escenario a partir de la matriz dada.
             #CAPA SUPERIOR
             if matrix2[fil][col] == 1: #Árbol
                 if matrix[fil][col] == 0: #Está en la hierba
-                    #Usamos las coordenadas de la esquina superior izquierda de la imagen.
-                    toAddLayer2 = [layer2[0], pos[0], pos[1]-sizeBlocks, 2*sizeBlocks] #Información del objeto [image, pos[0], pos[1], height]
+                    toAddLayer2 = stuff.obstacle(sizeBlocks, 0, pos.copy())
             if matrix2[fil][col] == 2: #Arbusto (para poner en hierba)
-                toAddLayer2 = [layer2[1], pos[0], pos[1], sizeBlocks]
+                if matrix[fil][col] == 0:
+                    toAddLayer2 = stuff.obstacle(sizeBlocks, 1, pos.copy())
             if matrix2[fil][col] == 3: #Arbusto rojo (para poner en hierba)
-                toAddLayer2 = [layer2[2], pos[0], pos[1], sizeBlocks]
+                if matrix[fil][col] == 0:
+                    toAddLayer2 = stuff.obstacle(sizeBlocks, 2, pos.copy())
+            if matrix2[fil][col] == 4: #Árbol cortado (para poner en hierba)
+                if matrix[fil][col] == 0:
+                    toAddLayer2 = stuff.obstacle(sizeBlocks, 3, pos.copy())
+            if matrix2[fil][col] == 5: #Árbol cortado hueco (para poner en hierba, tierra o nieve)
+                toAddLayer2 = stuff.obstacle(sizeBlocks, 4, pos.copy())
     
             level.append([image, pos[0], pos[1]])
             if toAddLayer2:
-                objects.append(toAddLayer2) #Cada bloque (que pertenece a una casilla) tiene [image, pos[0], pos[1]]
+                objects.append(toAddLayer2) #Cada objeto, del que luego obtendremos la información con la función .get_info()
             pos[0] += sizeBlocks
         pos[0] = 0
         pos[1] += sizeBlocks
@@ -233,23 +235,29 @@ def createLevel(): #Crea el escenario a partir de la matriz dada.
 def moveMap(): #Para mover el mapa.
     global level, dPressed, aPressed, wPressed, sPressed
     if dPressed:
-        for layer in level:
-            for each in layer:
-                each[1] -= player.vel
+        for each in level[0]: #Objetos de la capa inferior
+            each[1] -= player.get_vel()
+        for each in level[1]: #Objetos de la capa superior
+            each.move('right', player.get_vel())
         player.state('movingRight')
     if aPressed:
-        for layer in level:
-            for each in layer:
-                each[1] += player.vel
+        for each in level[0]: #Objetos de la capa inferior
+            each[1] += player.get_vel()
+        for each in level[1]: #Objetos de la capa superior
+            each.move('left', player.get_vel())
         player.state('movingLeft')
     if wPressed:
-        for layer in level:
-            for each in layer:
-                each[2] += player.vel
+        for each in level[0]: #Objetos de la capa inferior
+            each[2] += player.get_vel()
+        for each in level[1]: #Objetos de la capa superior
+            each.move('up', player.get_vel())
+        player.state('movingUp')
     if sPressed:
-        for layer in level:
-            for each in layer:
-                each[2] -= player.vel
+        for each in level[0]: #Objetos de la capa inferior
+            each[2] -= player.get_vel()
+        for each in level[1]: #Objetos de la capa superior
+            each.move('down', player.get_vel())
+        player.state('movingDown')
     else: #Cuando no está pulsada ninguna tecla de movimiento.
         player.state('still')
 
@@ -258,14 +266,17 @@ def drawStage(): #Para pintar el escenario, será diferente dependiendo del stat
     surface.fill((0,0,0))
     for each in level[0]:
         surface.blit(each[0], (each[1], each[2]))
-    objectList = copy.copy(level[1]) #Creamos una lista nueva a partir de la de objetos que la segunda capa y añadimos los objetos animados.
+        
+    objectList = [] #Creamos una lista con la info de los objetos de la segunda capa para posteriormente añadir los objetos animados.
+    for each in level[1]:
+        objectList.append(each.get_info())
+        #print(each.get_info())
     objectList.append(player.get_info(surface)) #Añadimos la info del jugador a la lista de objetos en la capa 2.
     #Esta lista deberá ordenarse constantemente para ver qué se pinta encima y debajo,
     #también se añadirán los demás objetos con movimiento.
     objectList.sort(key=lambda i : i[2] + i[3]) #Ordena la segunda capa dependiendo de la posy de la parte inferior de cada elemento (de mayor a menor).
     for each in objectList:
         surface.blit(each[0], (each[1], each[2]))
-    
         
 """ STATE FUNCTIONS """
 

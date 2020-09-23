@@ -65,5 +65,8 @@ class player:
                         self.imageToDraw = self.images[2]
                 self.stepMoment = GAME_TIME.get_ticks()
                 
+    def get_vel(self):
+        return self.vel
+    
     def get_info(self, surface): #Función que devuelve [image, pos[0], pos[1], height]
         return [self.imageToDraw, surface.get_width()/2, surface.get_height()/2, self.height]
